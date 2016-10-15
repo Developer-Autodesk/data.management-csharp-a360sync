@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleA360Sync", "A360Sync\SampleA360Sync.csproj", "{FF3D0F68-A246-489F-840F-733BBA57FB7F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Forge", "Forge\Forge.csproj", "{C6A02091-8DC7-4443-B18C-A2BAB09C40FF}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FF3D0F68-A246-489F-840F-733BBA57FB7F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FF3D0F68-A246-489F-840F-733BBA57FB7F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FF3D0F68-A246-489F-840F-733BBA57FB7F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FF3D0F68-A246-489F-840F-733BBA57FB7F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C6A02091-8DC7-4443-B18C-A2BAB09C40FF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C6A02091-8DC7-4443-B18C-A2BAB09C40FF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C6A02091-8DC7-4443-B18C-A2BAB09C40FF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C6A02091-8DC7-4443-B18C-A2BAB09C40FF}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
