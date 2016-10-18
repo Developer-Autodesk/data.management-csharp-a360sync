@@ -43,7 +43,7 @@ namespace Autodesk.Forge
     }
   }
 
-  public class Rest
+  public class ForgeApi
   {
     internal const string BASE_URL = "https://developer.api.autodesk.com";
 
@@ -116,7 +116,7 @@ namespace Autodesk.Forge
     }
   }
 
-  public abstract class ApiObject : Rest
+  public abstract class ApiObject : ForgeApi
   {
     internal Authorization Authorization { get; set; }
 
