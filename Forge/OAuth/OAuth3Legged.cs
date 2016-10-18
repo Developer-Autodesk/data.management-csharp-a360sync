@@ -16,11 +16,10 @@ namespace Autodesk.Forge.OAuth
     public string access_token { get; set; }
   }
 
-  public class OAuth3Legged : Rest
+  public class OAuth3Legged : ForgeApi
   {
     public OAuth3Legged(string clientId, string clientSecret, string callbackUrl,
-      string scopeInternal = "data:read data:write data:create data:search bucket:create bucket:read bucket:update bucket:delete", 
-      string scopePublic = "data:read")
+      string scopeInternal, string scopePublic)
     {
       ClientID = clientId;
       ClientSecret = clientSecret;
@@ -30,8 +29,8 @@ namespace Autodesk.Forge.OAuth
       ScopePublic = scopePublic;
     }
 
-    private string ClientID { set;  get; }
-    private string ClientSecret { set;  get; }
+    private string ClientID { set; get; }
+    private string ClientSecret { set; get; }
     private string CallbackUrl { get; set; }
     private string ScopeInternal { get; set; }
     private string ScopePublic { get; set; }

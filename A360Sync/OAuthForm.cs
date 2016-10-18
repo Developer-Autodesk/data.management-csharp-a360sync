@@ -15,10 +15,6 @@ namespace ForgeSampleA360Sync
   [PermissionSetAttribute(SecurityAction.Demand, Name = "FullTrust")]
   public partial class oAuthForm : Form
   {
-    private const string FORGE_CLIENT_ID = "";
-    private const string FORGE_CLIENT_SECRET = "";
-    private const string FORGE_CALLBACK_URL = "";
-
     private WebBrowser2 wb = new WebBrowser2();
     private TextBox console = new TextBox();
     Autodesk.Forge.OAuth.OAuth3Legged _oAuth;
@@ -27,18 +23,31 @@ namespace ForgeSampleA360Sync
 
     public oAuthForm()
     {
-      Rest.OnUnauthorized += OAuth3Legged_OnForbidden;
+      Utils.RegistryUtils.SetBrowserFeatureControl();
 
       InitializeComponent();
 
       wb.Dock = DockStyle.Fill;
       wb.NavigateError += new WebBrowserNavigateErrorEventHandler(wb_NavigateError);
+      wb.Navigated += Wb_Navigated;
+      ForgeApi.OnUnauthorized += OAuth3Legged_OnForbidden;
       Controls.Add(wb);
 
-      _oAuth = new Autodesk.Forge.OAuth.OAuth3Legged(FORGE_CLIENT_ID, FORGE_CLIENT_SECRET, FORGE_CALLBACK_URL);
+      _oAuth = new Autodesk.Forge.OAuth.OAuth3Legged(Utils.Config.FORGE_CLIENT_ID, 
+        Utils.Config.FORGE_CLIENT_SECRET, Utils.Config.FORGE_CALLBACK_URL,
+        Utils.Config.FORGE_SCOPE_INTERNAL, Utils.Config.FORGE_SCOPE_PUBLIC);
       wb.Navigate(_oAuth.AuthorizeUrl);
+    }
 
-      
+    private void Wb_Navigated(object sender, WebBrowserNavigatedEventArgs e)
+    {
+      Uri url = e.Url;
+      if (url.Host.IndexOf("auth.autodesk.com") > -1)
+      {
+        // the scopes pages is a bit bigger...
+        this.Height = (int)(this.Height * 1.7 > Screen.PrimaryScreen.WorkingArea.Height ? Screen.PrimaryScreen.WorkingArea.Height : this.Height * 1.5);
+        this.CenterToScreen();
+      }
     }
 
     private void OAuth3Legged_OnForbidden(object sender, EventArgs e)
@@ -50,7 +59,7 @@ namespace ForgeSampleA360Sync
        object sender, WebBrowserNavigateErrorEventArgs e)
     {
       Uri callbackURL = new Uri(e.Url);
-      if (e.Url.IndexOf(FORGE_CALLBACK_URL) == -1)
+      if (e.Url.IndexOf(Utils.Config.FORGE_CALLBACK_URL) == -1)
       {
         MessageBox.Show("Sorry, the authorization failed", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
         return;
@@ -81,23 +90,23 @@ namespace ForgeSampleA360Sync
       
       // create a folder under MyDocuments with the username
       Me me = new Me(new Authorization(_token.access_token));
-      string syncFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), FolderUtils.Sanitize(me.Json.userName));
-      FolderUtils.EnsureFolderExists(syncFolder);
+      string syncFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), Utils.FolderUtils.Sanitize(me.Json.userName));
+      Utils.FolderUtils.EnsureFolderExists(syncFolder);
 
       // mimic the A360 folder structure (hubs, projects & folders)
       LogActivity("Checking folder structure...");
       _a360 = new A360(new Authorization(_token.access_token));
       foreach (Hub hub in _a360.Hubs)
       {
-        string hubPath = Path.Combine(syncFolder, FolderUtils.Sanitize(hub.Json.attributes.name));
-        FolderUtils.EnsureFolderExists(hubPath);
-        FolderUtils.CreateIDFile(hubPath, "hub", hub.Json.id);
+        string hubPath = Path.Combine(syncFolder, Utils.FolderUtils.Sanitize(hub.Json.attributes.name));
+        Utils.FolderUtils.EnsureFolderExists(hubPath);
+        Utils.FolderUtils.CreateIDFile(hubPath, "hub", hub.Json.id);
 
         foreach (Project project in hub.Projects)
         {
-          string projectPath = Path.Combine(syncFolder, FolderUtils.Sanitize(hub.Json.attributes.name), FolderUtils.Sanitize(project.Json.attributes.name));
-          FolderUtils.EnsureFolderExists(projectPath);
-          FolderUtils.CreateIDFile(projectPath, "project", project.Json.id);
+          string projectPath = Path.Combine(syncFolder, Utils.FolderUtils.Sanitize(hub.Json.attributes.name), Utils.FolderUtils.Sanitize(project.Json.attributes.name));
+          Utils.FolderUtils.EnsureFolderExists(projectPath);
+          Utils.FolderUtils.CreateIDFile(projectPath, "project", project.Json.id);
           var projectname = project.Json.attributes.name;
 
           foreach( Item item in project.RootFolder.Contents.Items)
@@ -196,7 +205,7 @@ namespace ForgeSampleA360Sync
 
       string type;
       string id;
-      if (!FolderUtils.ReadIDFile(Path.GetDirectoryName(originalFullPath), out type, out id))
+      if (!Utils.FolderUtils.ReadIDFile(Path.GetDirectoryName(originalFullPath), out type, out id))
       {
         LogActivity("Cannot process file");
         return;
@@ -210,7 +219,7 @@ namespace ForgeSampleA360Sync
         case "project":
           string projectId = id;
           LogActivity("Preparing to upload file...please wait.");
-          FolderUtils.ReadIDFile(Path.GetFullPath(Path.Combine(Path.GetDirectoryName(originalFullPath), @"..\")), out type, out id);
+          Utils.FolderUtils.ReadIDFile(Path.GetFullPath(Path.Combine(Path.GetDirectoryName(originalFullPath), @"..\")), out type, out id);
           UploadFile(tempFilePath, _a360.Hubs[id].Projects[projectId].RootFolder);
           LogActivity("File uploaded!");
           break;

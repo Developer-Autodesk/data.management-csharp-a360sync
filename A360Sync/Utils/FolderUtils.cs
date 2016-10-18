@@ -6,7 +6,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace ForgeSampleA360Sync
+namespace ForgeSampleA360Sync.Utils
 {
   public class FolderUtils
   {
