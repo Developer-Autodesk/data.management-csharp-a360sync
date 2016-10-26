@@ -1,5 +1,7 @@
 # data.management-csharp-a360sync
 
+![Platforms](https://img.shields.io/badge/platform-Windows-lightgray.svg)
+![.NET](https://img.shields.io/badge/C#.NET-4.5.2-lightgray.svg)
 [![ASP.NET](https://img.shields.io/badge/ASP.NET-4.5.2-blue.svg)](https://asp.net/)
 [![License](http://img.shields.io/:license-mit-blue.svg)](http://opensource.org/licenses/MIT)
 
@@ -9,9 +11,15 @@
 
 This sample aims to detect new files locally and upload them to the respective A360 account. It was written in C# for Windows (tested on Windows 10) and it includes 3 projects: 
 
-    1. Forge: Class Library (.DLL) that wraps some of OAuth, Data Management and OSS endpoints in a meanifull way.
-    2. ServerOAuth: ASP.NET project that handles OAuth authorization (3-legged). Forge Client ID & Secret are used here.
-    3. A360Sync: WinForm .EXE that mimic the user account structure locally and upload new files into his/her A360 Account.
+**1. Forge**: Class Library (.DLL) that wraps some of OAuth, Data Management and OSS endpoints in a meanifull way.
+
+**2. ServerOAuth**: ASP.NET project that handles OAuth authorization (3-legged). Forge Client ID & Secret are used here.
+
+**3. A360Sync**: WinForm .EXE that mimic the user account structure locally and upload new files into his/her A360 Account.
+
+## Demonstration
+
+See [this video demonstration](https://www.youtube.com/watch?v=4Pgg05tLW-M).
 
 # Setup
 
