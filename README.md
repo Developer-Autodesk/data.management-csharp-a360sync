@@ -1,7 +1,7 @@
 # data.management-csharp-a360sync
 
 ![Platforms](https://img.shields.io/badge/platform-Windows-lightgray.svg)
-![.NET](https://img.shields.io/badge/C#.NET-4.5.2-lightgray.svg)
+![.NET](https://img.shields.io/badge/.NET-4.5.2-blue.svg)
 [![ASP.NET](https://img.shields.io/badge/ASP.NET-4.5.2-blue.svg)](https://asp.net/)
 [![License](http://img.shields.io/:license-mit-blue.svg)](http://opensource.org/licenses/MIT)
 
