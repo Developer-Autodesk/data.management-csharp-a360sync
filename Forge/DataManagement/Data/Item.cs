@@ -1,15 +1,12 @@
-﻿using Autodesk.Forge.OAuth;
+﻿using Autodesk.Forge.Extensions;
+using Autodesk.Forge.OAuth;
 using Newtonsoft.Json;
 using RestSharp;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Collections;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
-namespace Autodesk.Forge.DataManagement
+namespace Autodesk.Forge.DataManagement.Data
 {
   public class ItemsCollection : ApiObject, IEnumerable<Item>
   {
@@ -22,12 +19,12 @@ namespace Autodesk.Forge.DataManagement
 
     IEnumerator IEnumerable.GetEnumerator()
     {
-      return Enumerator();
+      return Enumerator().Result;
     }
 
     IEnumerator<Item> IEnumerable<Item>.GetEnumerator()
     {
-      return Enumerator();
+      return Enumerator().Result;
     }
 
     /// <summary>
@@ -47,18 +44,20 @@ namespace Autodesk.Forge.DataManagement
 
     internal void Invalidate()
     {
+      _items.Clear();
       _items = null;
     }
 
-    private IEnumerator<Item> Enumerator()
+    private async Task<IEnumerator<Item>> Enumerator()
     {
       if (_items == null)
       {
         _items = new List<Item>();
-        IRestResponse response = CallApi(string.Format("data/v1/projects/{0}/folders/{1}/contents", Owner.Owner.Json.id, System.Uri.EscapeUriString(Owner.Json.id)), Method.GET);
+        IRestResponse response = await CallApi(string.Format("data/v1/projects/{0}/folders/{1}/contents", Owner.Owner.ID, System.Uri.EscapeUriString(Owner.Json.id)), Method.GET);
         IList<Item.ItemResponse.Data> itemsJsonData = JsonConvert.DeserializeObject<JsonapiResponse<IList<Item.ItemResponse.Data>>>(response.Content).data;
         foreach (Item.ItemResponse.Data itemJsonData in itemsJsonData)
         {
+          if (!itemJsonData.type.Equals("items")) continue;
           Item item = new Item(Authorization);
           item.Json = itemJsonData;
           item.Owner = Owner;
@@ -69,7 +68,7 @@ namespace Autodesk.Forge.DataManagement
     }
   }
 
-  public class Item : ApiObject
+  public class Item : ApiObject, IIdentifiable
   {
     internal Folder Owner { get; set; }
 
@@ -78,13 +77,22 @@ namespace Autodesk.Forge.DataManagement
     internal Item(string fileName, Storage.StorageResponse storage, int version, Folder parentFolder) : base(parentFolder.Authorization)
     {
       Owner = parentFolder;
-      Item.ItemRequest newItem = new DataManagement.Item.ItemRequest(fileName, storage.id, 1, parentFolder);
+      Item.ItemRequest newItem = new DataManagement.Data.Item.ItemRequest(fileName, storage.id, 1, parentFolder);
       Dictionary<string, string> headers = new Dictionary<string, string>();
       headers.AddHeader(PredefinedHeadersExtension.PredefinedHeaders.ContentTypeJson);
       headers.AddHeader(PredefinedHeadersExtension.PredefinedHeaders.AcceptJson);
-      IRestResponse response = CallApi(string.Format("data/v1/projects/{0}/items", parentFolder.Owner.Json.id), Method.POST, headers, null, newItem, null);
+      IRestResponse response = CallApi(string.Format("data/v1/projects/{0}/items", parentFolder.Owner.ID), Method.POST, headers, null, newItem, null).Result;
       Json = JsonConvert.DeserializeObject<Item.ItemResponse>(response.Content).data;
       Owner.Contents.Items.Invalidate(); // need to force this list to rebuild
+    }
+
+    public string ID
+    {
+      get
+      {
+        if (Json == null && string.IsNullOrEmpty(ID)) throw new System.Exception("Item ID is not valid");
+        return Json.id;
+      }
     }
 
     private VersionsCollection _versions = null;

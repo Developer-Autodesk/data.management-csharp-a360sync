@@ -3,8 +3,9 @@ using Newtonsoft.Json;
 using RestSharp;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
-namespace Autodesk.Forge.DataManagement
+namespace Autodesk.Forge.DataManagement.Project
 {
   public class HubsCollection : ApiObject, IEnumerable<Hub>
   {
@@ -17,20 +18,20 @@ namespace Autodesk.Forge.DataManagement
 
     IEnumerator IEnumerable.GetEnumerator()
     {
-      return Enumerator();
+      return Enumerator().Result;
     }
 
     IEnumerator<Hub> IEnumerable<Hub>.GetEnumerator()
     {
-      return Enumerator();
+      return Enumerator().Result;
     }
 
-    private IEnumerator<Hub> Enumerator()
+    private async Task<IEnumerator<Hub>> Enumerator()
     {
       if (_hubs == null)
       {
         _hubs = new List<Hub>();
-        IRestResponse response = CallApi("project/v1/hubs/", Method.GET);
+        IRestResponse response = await CallApi("project/v1/hubs/", Method.GET);
         IList<Hub.HubResponse> hubsJsonData = JsonConvert.DeserializeObject<JsonapiResponse<IList<Hub.HubResponse>>>(response.Content).data;
         foreach (Hub.HubResponse hubJsonData in hubsJsonData)
         {
@@ -49,7 +50,7 @@ namespace Autodesk.Forge.DataManagement
       {
         if (_hubs == null)
         {
-          IRestResponse response = CallApi(string.Format("project/v1/hubs/{0}", hubId), Method.GET);
+          IRestResponse response = CallApi(string.Format("project/v1/hubs/{0}", hubId), Method.GET).Result;
           Hub.HubResponse hubJsonData = JsonConvert.DeserializeObject<JsonapiResponse<Hub.HubResponse>>(response.Content).data;
           Hub hub = new Hub(Authorization);
           hub.Json = hubJsonData;
@@ -63,7 +64,7 @@ namespace Autodesk.Forge.DataManagement
     }
   }
 
-  public class Hub : ApiObject
+  public class Hub : ApiObject, IIdentifiable
   {
     private ProjectsCollection _projects = null;
 
@@ -76,12 +77,21 @@ namespace Autodesk.Forge.DataManagement
       
     }
 
+    public string ID
+    {
+      get
+      {
+        if (Json == null && string.IsNullOrEmpty(ID)) throw new System.Exception("Project ID is not valid");
+        return Json.id;
+      }
+    }
+
     public ProjectsCollection Projects
     {
       get
       {
         if (_projects==null)
-          _projects = new DataManagement.ProjectsCollection(this, Authorization);
+          _projects = new ProjectsCollection(this, Authorization);
         return _projects;
       }
     }

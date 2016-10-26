@@ -10,6 +10,32 @@ namespace ForgeSampleA360Sync.Utils
 {
   public class FolderUtils
   {
+    public static bool IsFileLocked(FileInfo file)
+    {
+      FileStream stream = null;
+
+      try
+      {
+        stream = file.Open(FileMode.Open, FileAccess.Read, FileShare.None);
+      }
+      catch (IOException)
+      {
+        //the file is unavailable because it is:
+        //still being written to
+        //or being processed by another thread
+        //or does not exist (has already been processed)
+        return true;
+      }
+      finally
+      {
+        if (stream != null)
+          stream.Close();
+      }
+
+      //file is not locked
+      return false;
+    }
+
     public static void EnsureFolderExists(string path)
     {
       if (!Directory.Exists(path))
@@ -51,7 +77,7 @@ namespace ForgeSampleA360Sync.Utils
     public static string Sanitize(string pathName)
     {
       //Regex from http://stackoverflow.com/questions/62771/how-do-i-check-if-a-given-string-is-a-legal-valid-file-name-under-windows/628
-      Regex unspupportedRegex = new Regex("(^(PRN|AUX|NUL|CON|COM[1-9]|LPT[1-9]|(\\.+)$)(\\..*)?$)|(([‌​\\x00-\\x1f\\\\?*:\"‌​;‌​|/<>])+)|([\\. ]+)", RegexOptions.IgnoreCase);
+      Regex unspupportedRegex = new Regex("(^(PRN|AUX|NUL|CON|COM[1-9]|LPT[1-9]|(\\.+)$)(\\..*)?$)|(([‌​\\x00-\\x1f\\\\?*:\"‌​;‌​|/<>])+)|([\\.]+)", RegexOptions.IgnoreCase);
       return unspupportedRegex.Replace(pathName, string.Empty);
     }
   }

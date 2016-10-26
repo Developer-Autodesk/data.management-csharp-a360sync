@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Autodesk.Forge.Extensions;
+using Newtonsoft.Json;
 using RestSharp;
 using System;
 using System.Collections.Generic;
@@ -37,8 +38,10 @@ namespace Autodesk.Forge.OAuth
 
     public string AuthorizeUrl { get { return BASE_URL + string.Format("/authentication/v1/authorize?response_type=code&client_id={0}&redirect_uri={1}&scope={2}", ClientID, CallbackUrl, System.Net.WebUtility.UrlEncode(ScopeInternal)); } }
 
-    public Token GetToken(string code)
+    public async Task<Token> GetToken(string code)
     {
+      if (string.IsNullOrWhiteSpace(code)) return null;
+
       Dictionary<string, string> headers = new Dictionary<string, string>();
       headers.AddHeader(PredefinedHeadersExtension.PredefinedHeaders.ContentTypeFormUrlEncoded);
 
@@ -49,7 +52,7 @@ namespace Autodesk.Forge.OAuth
       parameters.Add("redirect_uri", CallbackUrl);
       parameters.Add("code", code);
 
-      IRestResponse response = MakeRequest("/authentication/v1/gettoken", Method.POST, headers, parameters);
+      IRestResponse response = await MakeRequestAsync("/authentication/v1/gettoken", Method.POST, headers, parameters);
       return JsonConvert.DeserializeObject<Token>(response.Content);
     }
 

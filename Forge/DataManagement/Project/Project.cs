@@ -4,8 +4,9 @@ using RestSharp;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
-namespace Autodesk.Forge.DataManagement
+namespace Autodesk.Forge.DataManagement.Project
 {
   public class ProjectsCollection : ApiObject, IEnumerable<Project>
   {
@@ -21,20 +22,20 @@ namespace Autodesk.Forge.DataManagement
 
     public IEnumerator<Project> GetEnumerator()
     {
-      return Enumerator();
+      return Enumerator().Result;
     }
 
     IEnumerator IEnumerable.GetEnumerator()
     {
-      return Enumerator();
+      return Enumerator().Result;
     }
 
-    private IEnumerator<Project> Enumerator()
+    private async Task<IEnumerator<Project>> Enumerator()
     {
       if (_projects == null)
       {
         _projects = new List<Project>();
-        IRestResponse response = CallApi(string.Format("project/v1/hubs/{0}/projects", Owner.Json.id), Method.GET);
+        IRestResponse response = await CallApi(string.Format("project/v1/hubs/{0}/projects", Owner.Json.id), Method.GET);
         IList<Project.ProjectResponse> projectsJsonData = JsonConvert.DeserializeObject<JsonapiResponse<IList<Project.ProjectResponse>>>(response.Content).data;
         foreach (Project.ProjectResponse projectJsonData in projectsJsonData)
         {
@@ -55,7 +56,7 @@ namespace Autodesk.Forge.DataManagement
       {
         if (_projects == null)
         {
-          return new Project(projectId, Authorization);
+          return new Project(this.Owner, projectId, Authorization);
         }
         foreach (Project h in _projects)
           if (h.Json.id.Equals(projectId))
@@ -65,37 +66,37 @@ namespace Autodesk.Forge.DataManagement
     }
   }
 
-  public class Project : ApiObject
+  public class Project : ApiObject, IIdentifiable
   {
     internal Hub Owner { get; set; }
 
     internal Project() : base(Authorization.Empty) { }
     internal Project(Authorization auth) : base(auth) { }
 
-    internal Project(Hub owner, Authorization auth) : base(auth)
+    internal Project(Hub owner, string projectId, Authorization auth) : base(auth)
     {
-    }
-
-    internal Project(string projectId, Authorization auth) : base(auth)
-    {
-      IRestResponse response = CallApi(string.Format("project/v1/hubs/{0}/projects/{1}", Owner.Json.id, projectId), Method.GET);
+      Owner = owner;
+      IRestResponse response = CallApi(string.Format("project/v1/hubs/{0}/projects/{1}", Owner.Json.id, projectId), Method.GET).Result;
       Project.ProjectResponse projectJsonData = JsonConvert.DeserializeObject<JsonapiResponse<Project.ProjectResponse>>(response.Content).data;
       this.Json = projectJsonData;
     }
-    
 
-    //public override string ID { get { return Json.id; } }
-    //public override string Name { get { return Json.attributes.name; } }
-
-    private Folder _rootFolder = null;
-
-    public Folder RootFolder
+    public string ID
     {
       get
       {
-        if (_rootFolder == null)
-          _rootFolder = new Folder(this, Json.relationships.rootFolder.data.id);
-        return _rootFolder;
+        if (Json == null && string.IsNullOrEmpty(ID)) throw new System.Exception("Project ID is not valid");
+        return Json.id;
+      }
+    }
+
+    public Data.Project DataProject
+    {
+      get
+      {
+        Data.Project p = new Data.Project(this, Authorization);
+        p.Owner = this;
+        return p;
       }
     }
 

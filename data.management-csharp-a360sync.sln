@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleA360Sync", "A360Sync\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Forge", "Forge\Forge.csproj", "{C6A02091-8DC7-4443-B18C-A2BAB09C40FF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServerOAuth", "ServerOAuth\ServerOAuth.csproj", "{CFC98ED9-00EF-49A7-A150-A3B5BD66C6DD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{C6A02091-8DC7-4443-B18C-A2BAB09C40FF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C6A02091-8DC7-4443-B18C-A2BAB09C40FF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C6A02091-8DC7-4443-B18C-A2BAB09C40FF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CFC98ED9-00EF-49A7-A150-A3B5BD66C6DD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CFC98ED9-00EF-49A7-A150-A3B5BD66C6DD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CFC98ED9-00EF-49A7-A150-A3B5BD66C6DD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CFC98ED9-00EF-49A7-A150-A3B5BD66C6DD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

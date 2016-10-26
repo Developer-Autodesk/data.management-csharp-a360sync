@@ -16,9 +16,9 @@ namespace Autodesk.Forge.OSS
       
     }
 
-    public BucketResponse UploadFile(string filePath, string bucketKey, string objectName)
+    public async Task<BucketResponse> UploadFile(string filePath, string bucketKey, string objectName)
     {
-      IRestResponse response = CallApi(string.Format("oss/v2/buckets/{0}/objects/{1}", bucketKey, objectName), RestSharp.Method.PUT, null, null, null, filePath );
+      IRestResponse response = await CallApi(string.Format("oss/v2/buckets/{0}/objects/{1}", bucketKey, objectName), RestSharp.Method.PUT, null, null, null, filePath );
       return JsonConvert.DeserializeObject<JsonapiResponse<Bucket.BucketResponse>>(response.Content).data;
     }
 

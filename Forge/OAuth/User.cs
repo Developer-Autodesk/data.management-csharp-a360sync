@@ -1,5 +1,7 @@
 ﻿using Newtonsoft.Json;
 using RestSharp;
+using System.Threading.Tasks;
+
 namespace Autodesk.Forge.OAuth
 {
   public class Me : ApiObject
@@ -8,7 +10,8 @@ namespace Autodesk.Forge.OAuth
 
     public Me(Authorization accessToken) : base(accessToken)
     {
-      IRestResponse response = CallApi("/userprofile/v1/users/@me", Method.GET);
+      IRestResponse response = CallApi("/userprofile/v1/users/@me", Method.GET).Result;
+
       if (response == null) return;
       UserMeResponse meJsonData = JsonConvert.DeserializeObject<UserMeResponse>(response.Content);
       this.Json = meJsonData;

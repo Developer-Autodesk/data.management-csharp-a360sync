@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Autodesk.Forge.DataManagement
+namespace Autodesk.Forge.DataManagement.Data
 {
   public class Storage
   {

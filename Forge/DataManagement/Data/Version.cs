@@ -1,4 +1,5 @@
-﻿using Autodesk.Forge.OAuth;
+﻿using Autodesk.Forge.Extensions;
+using Autodesk.Forge.OAuth;
 using RestSharp;
 using System;
 using System.Collections.Generic;
@@ -6,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Autodesk.Forge.DataManagement
+namespace Autodesk.Forge.DataManagement.Data
 {
   public class VersionsCollection : ApiObject//, IEnumerable<Item>
   {
@@ -17,13 +18,13 @@ namespace Autodesk.Forge.DataManagement
       Owner = owner;
     }
 
-    public void Add(Storage.StorageResponse storage)
+    public async Task Add(Storage.StorageResponse storage)
     {
-      Version.VersionRequest newVersion = new DataManagement.Version.VersionRequest(Owner.Json.attributes.displayName, storage.id, Owner.Json.id);
+      Version.VersionRequest newVersion = new DataManagement.Data.Version.VersionRequest(Owner.Json.attributes.displayName, storage.id, Owner.Json.id);
       Dictionary<string, string> headers = new Dictionary<string, string>();
       headers.AddHeader(PredefinedHeadersExtension.PredefinedHeaders.ContentTypeJson);
       headers.AddHeader(PredefinedHeadersExtension.PredefinedHeaders.AcceptJson);
-      IRestResponse response = CallApi(string.Format("/data/v1/projects/{0}/versions", Owner.Owner.Owner.Json.id), Method.POST, headers, null, newVersion, null);
+      IRestResponse response = await CallApi(string.Format("/data/v1/projects/{0}/versions", Owner.Owner.Owner.ID), Method.POST, headers, null, newVersion, null);
       //Json = JsonConvert.DeserializeObject<Version.>(response.Content).data;
     }
   }

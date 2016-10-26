@@ -1,59 +1,121 @@
-﻿using Autodesk.Forge.OAuth;
+﻿using Autodesk.Forge.Extensions;
+using Autodesk.Forge.OAuth;
 using Newtonsoft.Json;
 using RestSharp;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 
-namespace Autodesk.Forge.DataManagement
+namespace Autodesk.Forge.DataManagement.Data
 {
-  public class FolderCollection : ApiObject, IEnumerable<Project>
+  public class FolderCollection : ApiObject, IEnumerable<Folder>
   {
-    internal FolderCollection(Authorization accessToken) : base(accessToken)
-    {
-      throw new NotImplementedException();
-    }
+    private Folder Owner { get; set; }
 
-    public IEnumerator<Project> GetEnumerator()
+    internal FolderCollection(Folder owner, Authorization accessToken) : base(accessToken)
     {
-      throw new NotImplementedException();
+      Owner = owner;
     }
 
     IEnumerator IEnumerable.GetEnumerator()
     {
-      throw new NotImplementedException();
+      return Enumerator().Result;
+    }
+
+    IEnumerator<Folder> IEnumerable<Folder>.GetEnumerator()
+    {
+      return Enumerator().Result;
+    }
+
+    /// <summary>
+    /// Return a item with same displayName
+    /// </summary>
+    /// <param name="displayName">The display name (e.g. MyFile.dwg)</param>
+    /// <returns></returns>
+    public Folder Contains(string displayName)
+    {
+      foreach (Folder f in this._folders)
+        if (f.Json.attributes.displayName.Equals(displayName))
+          return f;
+      return null;
+    }
+
+    private IList<Folder> _folders = null;
+
+    internal void Invalidate()
+    {
+      _folders.Clear();
+      _folders = null;
+    }
+
+    private async Task<IEnumerator<Folder>> Enumerator()
+    {
+      if (_folders == null)
+      {
+        _folders = new List<Folder>();
+        IRestResponse response = await CallApi(string.Format("data/v1/projects/{0}/folders/{1}/contents", Owner.Owner.ID, System.Uri.EscapeUriString(Owner.ID)), Method.GET);
+        IList<Folder.FolderResponse> foldersJsonData = JsonConvert.DeserializeObject<JsonapiResponse<IList<Folder.FolderResponse>>>(response.Content).data;
+        foreach (Folder.FolderResponse folderJsonData in foldersJsonData)
+        {
+          if (!folderJsonData.type.Equals("folders")) continue;
+          Folder folder = new Folder(this.Owner.Owner, new Folder.FolderID( folderJsonData.id));
+          folder.Json = folderJsonData;
+          _folders.Add(folder);
+        }
+      }
+      return _folders.GetEnumerator();
     }
   }
 
-  public class Folder : ApiObject
+  public class Folder : ApiObject, IIdentifiable
   {
+    public struct FolderID
+    {
+      public FolderID(string id) { ID = id; }
+      public string ID { get; set; }
+    }
+
     private Project _owner = null;
     internal Project Owner
     {
       get
       {
         if (_owner == null)
-          _owner = new Project(this.Json.relationships.parent.data.id, Authorization);
+        {
+          Uri u = new Uri(this.Json.links.self.href);
+          string projectId = u.Segments[4].TrimEnd('/');
+          _owner = new Data.Project(projectId, Authorization);
+        }
         return _owner;
       }
       set { _owner = value; }
     }
 
-    internal Folder(Project owner, string folderId) : base(owner.Authorization)
+    internal Folder(Project owner, FolderID folderId) : base(owner.Authorization)
     {
       Owner = owner;
-      Init(owner.Json.id, folderId);
+      Init(owner.ID, folderId);
     }
 
-    /*public Folder(string projectId, string folderId, Authorization auth) : base(auth)
+    internal Folder(string projectId, FolderID folderId, Authorization auth) : base(auth)
     {
       Init(projectId, folderId);
-    }*/
+    }
 
-    private void Init(string projectId, string folderId)
+    public string ID
     {
-      IRestResponse response = CallApi(string.Format("data/v1/projects/{0}/folders/{1}", projectId, folderId), Method.GET);
+      get
+      {
+        if (Json == null || string.IsNullOrEmpty(Json.id)) throw new System.Exception("Folder ID is not valid");
+        return Json.id;
+      }
+    }
+
+    private void Init(string projectId, FolderID folderId)
+    {
+      IRestResponse response = CallApi(string.Format("data/v1/projects/{0}/folders/{1}", projectId, folderId.ID ), Method.GET).Result;
       FolderResponse folderJsonData = JsonConvert.DeserializeObject<JsonapiResponse<FolderResponse>>(response.Content).data;
       this.Json = folderJsonData;
     }
@@ -87,8 +149,16 @@ namespace Autodesk.Forge.DataManagement
           return _items;
         }
       }
-      
-      //public FolderCollection Folders { get; } // ToDo
+
+      private FolderCollection _folders;
+      public FolderCollection Folders {
+        get
+        {
+          if (_folders == null)
+            _folders = new FolderCollection(Owner, this.Authorization);
+          return _folders;
+        }
+      }
     }
 
     //public override string ID { get { return Json.id; } }
@@ -100,7 +170,7 @@ namespace Autodesk.Forge.DataManagement
     /// <param name="filePath">Full path of the file</param>
     /// <param name="createNewVersion">If file already on the folder, TRUE will create new version, FALSE will do nothing</param>
     /// <returns>The newly created item</returns>
-    public Item UploadFile(string filePath, bool createNewVersion)
+    public async Task<Item> UploadFile(string filePath, bool createNewVersion)
     {
       // ToDo: check if file exists (then create new version)
 
@@ -115,13 +185,13 @@ namespace Autodesk.Forge.DataManagement
 
       //Step 3: Create a storage location
       string fileName = Path.GetFileName(filePath);
-      Storage.StorageResponse storageDef = CreateStorage(fileName);
+      Storage.StorageResponse storageDef = await CreateStorage(fileName);
 
       // Step 4: Upload a file to the storage location
       OSS.Bucket bucket = new OSS.Bucket(Authorization);
       string bucketKey, objectName;
       OSS.Bucket.Extract(storageDef.id, out bucketKey, out objectName);
-      bucket.UploadFile(filePath, bucketKey, objectName);
+      await bucket.UploadFile(filePath, bucketKey, objectName);
 
       var id = storageDef.id;
 
@@ -134,19 +204,19 @@ namespace Autodesk.Forge.DataManagement
       else
       {
         // Step 6: Update the version of a file
-        item.Versions.Add(storageDef);
+        await item.Versions.Add(storageDef);
       }
 
       return item;
     }
 
-    private Storage.StorageResponse CreateStorage(string fileName)
+    private async Task<Storage.StorageResponse> CreateStorage(string fileName)
     {
       Storage.StorageRequest storageReq = new Storage.StorageRequest(this, fileName);
       Dictionary<string, string> headers = new Dictionary<string, string>();
       headers.AddHeader(PredefinedHeadersExtension.PredefinedHeaders.ContentTypeJson);
       headers.AddHeader(PredefinedHeadersExtension.PredefinedHeaders.AcceptJson);
-      IRestResponse response = CallApi(string.Format("/data/v1/projects/{0}/storage", Owner.Json.id), Method.POST, headers, null, storageReq);
+      IRestResponse response = await CallApi(string.Format("/data/v1/projects/{0}/storage", Owner.ID), Method.POST, headers, null, storageReq);
       return JsonConvert.DeserializeObject<JsonapiResponse<Storage.StorageResponse>>(response.Content).data;
     }
 

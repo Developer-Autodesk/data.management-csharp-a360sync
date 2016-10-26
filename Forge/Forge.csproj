@@ -49,13 +49,15 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ApiObject.cs" />
-    <Compile Include="DataManagement\A360.cs" />
-    <Compile Include="DataManagement\Folder.cs" />
-    <Compile Include="DataManagement\Hub.cs" />
-    <Compile Include="DataManagement\Item.cs" />
-    <Compile Include="DataManagement\Project.cs" />
-    <Compile Include="DataManagement\Storage.cs" />
-    <Compile Include="DataManagement\Version.cs" />
+    <Compile Include="DataManagement\Data\Project.cs" />
+    <Compile Include="DataManagement\Project\A360.cs" />
+    <Compile Include="DataManagement\Data\Folder.cs" />
+    <Compile Include="DataManagement\Project\Hub.cs" />
+    <Compile Include="DataManagement\Data\Item.cs" />
+    <Compile Include="DataManagement\Project\Project.cs" />
+    <Compile Include="DataManagement\Data\Storage.cs" />
+    <Compile Include="DataManagement\Data\Version.cs" />
+    <Compile Include="Extensions.cs" />
     <Compile Include="OAuth\Authorization.cs" />
     <Compile Include="OAuth\OAuth3Legged.cs" />
     <Compile Include="OAuth\User.cs" />

@@ -4,50 +4,15 @@ using RestSharp;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace Autodesk.Forge
 {
-  public static class PredefinedHeadersExtension
-  {
-    public enum PredefinedHeaders
-    {
-      /// <summary>
-      /// Content-Type: application/vnd.api+json
-      /// </summary>
-      ContentTypeJson,
-      /// <summary>
-      /// Content-Type: application/x-www-form-urlencoded
-      /// </summary>
-      ContentTypeFormUrlEncoded,
-      /// <summary>
-      /// Accept: application/vnd.api+json
-      /// </summary>
-      AcceptJson
-
-    }
-
-    public static void AddHeader(this Dictionary<string, string> obj, PredefinedHeaders header)
-    {
-      switch(header)
-      {
-        case PredefinedHeaders.ContentTypeJson:
-          obj.Add("Content-Type", "application/vnd.api+json");
-          break;
-        case PredefinedHeaders.AcceptJson:
-          obj.Add("Accept", "application/vnd.api+json");
-          break;
-        case PredefinedHeaders.ContentTypeFormUrlEncoded:
-          obj.Add("Content-Type", "application/x-www-form-urlencoded");
-          break;
-      }
-    }
-  }
-
   public class ForgeApi
   {
     internal const string BASE_URL = "https://developer.api.autodesk.com";
 
-    protected IRestResponse MakeRequest(string endPoint, RestSharp.Method method,
+    protected async Task<IRestResponse> MakeRequestAsync(string endPoint, RestSharp.Method method,
       Dictionary<string, string> headers = null, Dictionary<string, string> bodyParameters = null,
       object dataBody = null, String filePath = null)
     {
@@ -78,7 +43,7 @@ namespace Autodesk.Forge
         // the request.AddJsonBody() override the Content-Type header to RestSharp... this is a workaround
         request.AddParameter(headers["Content-Type"], JsonConvert.SerializeObject(dataBody), ParameterType.RequestBody);
 
-      IRestResponse response = client.Execute(request);
+      IRestResponse response = await client.ExecuteTaskAsync(request);
 
       if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
       {
@@ -107,7 +72,7 @@ namespace Autodesk.Forge
     }
   
 
-    public static event EventHandler OnUnauthorized;
+    public event EventHandler OnUnauthorized;
 
     public class StatusCodeEventArgs :  EventArgs
     {
@@ -125,20 +90,23 @@ namespace Autodesk.Forge
       Authorization = auth;
     }
 
-    protected IRestResponse CallApi(string endPoint, RestSharp.Method method,
+    protected async Task<IRestResponse>  CallApi(string endPoint, RestSharp.Method method,
       Dictionary<string, string> headers = null, Dictionary<string, string> bodyParameters = null,
       object dataBody = null, string file = null)
     {
       if (headers == null) headers = new Dictionary<string, string>();
       headers.Add("Authorization", "Bearer " + Authorization.AccessToken);
-      return base.MakeRequest(endPoint, method, headers, bodyParameters, dataBody, file);
+      return await MakeRequestAsync(endPoint, method, headers, bodyParameters, dataBody, file);
     }
-
-    //virtual public string ID { get; }
     //virtual public string Name { get; }
   }
 
-  public class JsonapiResponse<T>
+  internal interface IIdentifiable
+  {
+    string ID { get; }
+  }
+
+  internal class JsonapiResponse<T>
   {
     public class Jsonapi
     {
