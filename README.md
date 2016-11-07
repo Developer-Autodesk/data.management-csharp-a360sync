@@ -33,11 +33,13 @@ For using this sample, you need an Autodesk developer credentials. Visit the [Fo
 
 At the **ServerOAuth** project, open the **web.config** file and adjust the appSettings:
 
+```HTML
   <appSettings>
     <add key="FORGE_CLIENT_ID" value="<<Your Client ID from Developer Portal>>" />
     <add key="FORGE_CLIENT_SECRET" value="<<Your Client Secret>>" />
     <add key="FORGE_CALLBACK_URL" value="http://localhost:58966/autodeskcallback.aspx"/>
   </appSettings>
+```
 
 The localhost port should be the same, but double check at Properties >> Web >> Servers >> Project URL setting.
 
