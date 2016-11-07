@@ -41,7 +41,7 @@ At the **ServerOAuth** project, open the **web.config** file and adjust the appS
   </appSettings>
 ```
 
-The localhost port should be the same, but double check at Properties >> Web >> Servers >> Project URL setting.
+The localhost port should be the same, but double check at Properties >> Web >> Servers >> Project URL setting. If you're using a different host name, also adjust at the [Config.cs](/Developer-Autodesk/data.management-csharp-a360sync/blob/master/A360Sync/Utils/Config.cs) file.
 
 Compile the solution, Visual Studio should download the NUGET packages ([RestSharp](https://www.nuget.org/packages/RestSharp) and [Newtonsoft.Json](https://www.nuget.org/packages/newtonsoft.json/))
 
