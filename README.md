@@ -5,9 +5,9 @@
 [![ASP.NET](https://img.shields.io/badge/ASP.NET-4.5.2-blue.svg)](https://asp.net/)
 [![License](http://img.shields.io/:license-mit-blue.svg)](http://opensource.org/licenses/MIT)
 
-# Description
+# This sample is deprecated
 
-**IMPORTANT**: This still a work in progress, this sample is not yet fully tested. Use carefully, please. 
+# Description
 
 This sample aims to detect new files locally and upload them to the respective A360 account. It was written in C# for Windows (tested on Windows 10) and it includes 3 projects: 
 
